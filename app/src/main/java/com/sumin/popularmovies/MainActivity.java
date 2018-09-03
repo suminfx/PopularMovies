@@ -11,6 +11,7 @@ import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.widget.CompoundButton;
+import android.widget.ProgressBar;
 import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -33,6 +34,7 @@ public class MainActivity extends AppCompatActivity {
     private Switch mSwitchSortBy;
     private TextView mTextViewTopRated;
     private TextView mTextViewMostPopular;
+    private ProgressBar mProgressBarLoading;
 
     private GridLayoutManager layoutManager;
     private boolean isLoading = false;
@@ -48,6 +50,7 @@ public class MainActivity extends AppCompatActivity {
         mSwitchSortBy = findViewById(R.id.switchSortBy);
         mTextViewMostPopular = findViewById(R.id.textViewMostPopular);
         mTextViewTopRated = findViewById(R.id.textViewTopRated);
+        mProgressBarLoading = findViewById(R.id.progressBarLoading);
         RecyclerView mRecyclerViewPosters = findViewById(R.id.recyclerViewPosters);
 
         layoutManager = new GridLayoutManager(this,2);
@@ -130,7 +133,16 @@ public class MainActivity extends AppCompatActivity {
         if (NetworkUtils.isConnected(this)) {
             URL url = NetworkUtils.createURLByMethodOfSort(sortBy, page, language);
             if (url != null) {
-                JSONObject jsonObject = NetworkUtils.getJSONObjectFromURL(url);
+                JSONObject jsonObject = NetworkUtils.getJSONObjectFromURL(url, new NetworkUtils.AsyncProcess() {
+                    @Override
+                    public void onProcessStart() {
+                        mProgressBarLoading.setVisibility(View.VISIBLE);
+                    }
+                    @Override
+                    public void onProcessFinish() {
+                        mProgressBarLoading.setVisibility(View.INVISIBLE);
+                    }
+                });
                 if (jsonObject != null) {
                     movies = MovieDBHelper.getMoviesFromJSONObject(jsonObject);
                 } else if (!NetworkUtils.isInternetConnection) {

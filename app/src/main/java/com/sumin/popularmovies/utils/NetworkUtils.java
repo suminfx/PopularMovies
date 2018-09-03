@@ -22,32 +22,38 @@ import java.util.concurrent.ExecutionException;
 public class NetworkUtils {
     //Test internet connection
     private static final String URL_FOR_TEST_CONNECTION = "http://www.google.com/";
-    private static final int TIMEOUT_FOR_TEST_CONNECTION = 1000;
     public static boolean isInternetConnection = false;
 
+    //Reading from network
+    private static final int CONNECT_TIMEOUT = 5000; //milliseconds
+    private static final int READ_TIMEOUT = 10000; //milliseconds
+
     //Movie db API
-    private static final String MOVIES_DB_URL = "https://api.themoviedb.org/3/discover/movie";
     private static final String API_KEY = ""; //TODO: Add your API_KEY here
-    private static final String SORT_BY_PARAMS = "sort_by";
+    private static final String MOVIES_DB_URL = "https://api.themoviedb.org/3/movie";
+    private static final String SORT_BY_POPULARITY = "/popular";
+    private static final String SORT_BY_TOP_RATED = "/top_rated";
     private static final String LANGUAGE_PARAMS = "language";
     private static final String PAGE_PARAMS = "page";
     private static final String VOTE_COUNT_PARAMS = "vote_count.gte";
     private static final String MIN_VOTE_COUNT = "1000";
-    private static final String SORT_BY_POPULARITY_KEY = "popularity.desc";
-    private static final String SORT_BY_TOP_RATED_KEY = "vote_average.desc";
     private static final String API_KEY_PARAMS = "api_key";
-    private static final int MAX_COUNT_PAGES = 1000;
 
-    public static JSONObject getJSONObjectFromURL(URL url) {
+    public static JSONObject getJSONObjectFromURL(URL url, AsyncProcess asyncProcess) {
         JSONObject resultJSONObject = null;
         try {
-            resultJSONObject = new GetJSONFromURLTask().execute(url).get();
+            resultJSONObject = new GetJSONFromURLTask(asyncProcess).execute(url).get();
         } catch (InterruptedException e) {
             e.printStackTrace();
         } catch (ExecutionException e) {
             e.printStackTrace();
         }
         return resultJSONObject;
+    }
+
+    public interface AsyncProcess {
+        void onProcessStart();
+        void onProcessFinish();
     }
 
     public static boolean isConnected(Context context) {
@@ -67,7 +73,7 @@ public class NetworkUtils {
             HttpURLConnection urlc = (HttpURLConnection) url.openConnection();
             urlc.setRequestProperty("User-Agent", "test");
             urlc.setRequestProperty("Connection", "close");
-            urlc.setConnectTimeout(TIMEOUT_FOR_TEST_CONNECTION); // Timeout is in seconds
+            urlc.setConnectTimeout(CONNECT_TIMEOUT); // Timeout is in milliseconds
             urlc.connect();
             result = urlc.getResponseCode() == HttpURLConnection.HTTP_OK;
         } catch (IOException e) {
@@ -78,22 +84,21 @@ public class NetworkUtils {
     }
 
     public static URL createURLByMethodOfSort(@NonNull SortBy sortBy, int pageNumber, String language) {
-        if (pageNumber > MAX_COUNT_PAGES) {
-            return null;
+        String methodOfSorting = "";
+        switch (sortBy) {
+            case TOP_RATED_DESC:
+                methodOfSorting = SORT_BY_TOP_RATED;
+                break;
+            case MOST_POPULAR_DESC:
+                methodOfSorting = SORT_BY_POPULARITY;
+                break;
         }
-        Uri.Builder builder = Uri.parse(MOVIES_DB_URL).buildUpon()
+
+        Uri.Builder builder = Uri.parse(MOVIES_DB_URL + methodOfSorting).buildUpon()
                 .appendQueryParameter(API_KEY_PARAMS, API_KEY)
                 .appendQueryParameter(PAGE_PARAMS, String.valueOf(pageNumber))
                 .appendQueryParameter(LANGUAGE_PARAMS, language)
                 .appendQueryParameter(VOTE_COUNT_PARAMS, MIN_VOTE_COUNT);
-        switch (sortBy) {
-            case MOST_POPULAR_DESC:
-                builder.appendQueryParameter(SORT_BY_PARAMS, SORT_BY_POPULARITY_KEY);
-                break;
-            case TOP_RATED_DESC:
-                builder.appendQueryParameter(SORT_BY_PARAMS, SORT_BY_TOP_RATED_KEY);
-                break;
-        }
         Uri uri = builder.build();
         URL resultURL = null;
         try {
@@ -110,6 +115,19 @@ public class NetworkUtils {
     }
 
     private static class GetJSONFromURLTask extends AsyncTask<URL, Void, JSONObject> {
+
+        private AsyncProcess asyncProcess;
+
+        GetJSONFromURLTask(AsyncProcess asyncProcess) {
+            this.asyncProcess = asyncProcess;
+        }
+
+        @Override
+        protected void onPreExecute() {
+            asyncProcess.onProcessStart();
+            super.onPreExecute();
+        }
+
         @Override
         protected JSONObject doInBackground(URL... urls) {
             if (!isInternetConnection()) {
@@ -121,6 +139,8 @@ public class NetworkUtils {
                 HttpURLConnection connection = null;
                 try {
                     connection = (HttpURLConnection) url.openConnection();
+                    connection.setConnectTimeout(CONNECT_TIMEOUT);
+                    connection.setReadTimeout(READ_TIMEOUT);
                     InputStream inputStream = connection.getInputStream();
                     InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
                     BufferedReader reader = new BufferedReader(inputStreamReader);
@@ -145,6 +165,12 @@ public class NetworkUtils {
                 }
             }
             return resultJSONObject;
+        }
+
+        @Override
+        protected void onPostExecute(JSONObject jsonObject) {
+            asyncProcess.onProcessFinish();
+            super.onPostExecute(jsonObject);
         }
     }
 }

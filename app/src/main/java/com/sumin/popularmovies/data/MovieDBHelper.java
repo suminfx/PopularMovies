@@ -1,6 +1,7 @@
 package com.sumin.popularmovies.data;
 
 import com.sumin.popularmovies.Movie;
+import com.sumin.popularmovies.utils.NetworkUtils;
 
 import org.json.JSONArray;
 import org.json.JSONException;

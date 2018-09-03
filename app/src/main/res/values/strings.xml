@@ -8,4 +8,9 @@
     <string name="release_date">Release date:</string>
     <string name="original_title">Original title:</string>
     <string name="description_rating">Rating of movie</string>
+
+    <!--Only for testing-->
+    <string name="test_original_title">One Missed Call</string>
+    <string name="test_overview">Several people start receiving voice-mails from their future selves messages which include the date, time, and some of the details of their deaths.</string>
+    <string name="test_release_date">2008-01-04</string>
 </resources>

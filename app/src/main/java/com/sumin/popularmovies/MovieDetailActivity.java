@@ -8,13 +8,16 @@ import android.widget.TextView;
 
 import com.squareup.picasso.Picasso;
 
+import butterknife.BindView;
+import butterknife.ButterKnife;
+
 public class MovieDetailActivity extends AppCompatActivity {
 
-    private ImageView mImageViewPoster;
-    private TextView mTextViewOriginalTitle;
-    private TextView mTextViewOverview;
-    private TextView mTextViewReleaseDate;
-    private TextView mTextViewRating;
+    @BindView(R.id.imageViewPoster) ImageView mImageViewPoster;
+    @BindView(R.id.textViewOriginalTitle) TextView mTextViewOriginalTitle;
+    @BindView(R.id.textViewOverview) TextView mTextViewOverview;
+    @BindView(R.id.textViewReleaseDate) TextView mTextViewReleaseDate;
+    @BindView(R.id.textViewRating) TextView mTextViewRating;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,11 +35,7 @@ public class MovieDetailActivity extends AppCompatActivity {
         }
 
         //If it's ok getting views
-        mImageViewPoster = findViewById(R.id.imageViewPoster);
-        mTextViewOriginalTitle = findViewById(R.id.textViewOriginalTitle);
-        mTextViewOverview = findViewById(R.id.textViewOverview);
-        mTextViewReleaseDate = findViewById(R.id.textViewReleaseDate);
-        mTextViewRating = findViewById(R.id.textViewRating);
+        ButterKnife.bind(this);
 
         //Getting movie and updatingUI
         Movie movie = MainActivity.MOVIES.get(indexOfMovie);

@@ -9,6 +9,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.DisplayMetrics;
 import android.view.View;
 import android.widget.CompoundButton;
 import android.widget.ProgressBar;
@@ -24,6 +25,9 @@ import org.json.JSONObject;
 import java.net.URL;
 import java.util.ArrayList;
 
+import butterknife.BindView;
+import butterknife.ButterKnife;
+
 public class MainActivity extends AppCompatActivity {
 
     public static final ArrayList<Movie> MOVIES = new ArrayList<>();
@@ -31,10 +35,11 @@ public class MainActivity extends AppCompatActivity {
 
     //Views
     private MoviesAdapter mMoviesAdapter;
-    private Switch mSwitchSortBy;
-    private TextView mTextViewTopRated;
-    private TextView mTextViewMostPopular;
-    private ProgressBar mProgressBarLoading;
+    @BindView(R.id.recyclerViewPosters) RecyclerView mRecyclerViewPosters;
+    @BindView(R.id.switchSortBy) Switch mSwitchSortBy;
+    @BindView(R.id.textViewTopRated) TextView mTextViewTopRated;
+    @BindView(R.id.textViewMostPopular) TextView mTextViewMostPopular;
+    @BindView(R.id.progressBarLoading) ProgressBar mProgressBarLoading;
 
     private GridLayoutManager layoutManager;
     private boolean isLoading = false;
@@ -46,24 +51,15 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        ButterKnife.bind(this);
 
-        mSwitchSortBy = findViewById(R.id.switchSortBy);
-        mTextViewMostPopular = findViewById(R.id.textViewMostPopular);
-        mTextViewTopRated = findViewById(R.id.textViewTopRated);
-        mProgressBarLoading = findViewById(R.id.progressBarLoading);
-        RecyclerView mRecyclerViewPosters = findViewById(R.id.recyclerViewPosters);
-
-        layoutManager = new GridLayoutManager(this,2);
+        int spanCount = calculateNoOfColumns();
+        layoutManager = new GridLayoutManager(this, spanCount);
         Configuration configuration = getResources().getConfiguration();
         if (Build.VERSION.SDK_INT >= 24) {
             language = configuration.getLocales().get(0).getLanguage();
         } else {
             language = configuration.locale.getLanguage();
-        }
-        if (configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
-            layoutManager.setSpanCount(3);
-        } else {
-            layoutManager.setSpanCount(2);
         }
         mRecyclerViewPosters.setLayoutManager(layoutManager);
         mMoviesAdapter = new MoviesAdapter(this, MOVIES);
@@ -161,5 +157,15 @@ public class MainActivity extends AppCompatActivity {
 
     public void onClickSwitchToTopRated(View view) {
         mSwitchSortBy.setChecked(true);
+    }
+
+    public int calculateNoOfColumns() {
+        DisplayMetrics displayMetrics = getResources().getDisplayMetrics();
+        float dpWidth = displayMetrics.widthPixels / displayMetrics.density;
+        int scalingFactor = 200;
+        int noOfColumns = (int) (dpWidth / scalingFactor);
+        if(noOfColumns < 2)
+            noOfColumns = 2;
+        return noOfColumns;
     }
 }

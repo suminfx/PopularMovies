@@ -36,7 +36,7 @@ public class NetworkUtils {
     private static final String LANGUAGE_PARAMS = "language";
     private static final String PAGE_PARAMS = "page";
     private static final String VOTE_COUNT_PARAMS = "vote_count.gte";
-    private static final String MIN_VOTE_COUNT = "1000";
+    private static final String MIN_VOTE_COUNT = "0";
     private static final String API_KEY_PARAMS = "api_key";
 
     public static JSONObject getJSONObjectFromURL(URL url, AsyncProcess asyncProcess) {
